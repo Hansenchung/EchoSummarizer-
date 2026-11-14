@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoSummarizer: Speech-to-Action Workshop Playground</title>
+    <!-- Tailwind CSS -->
+       <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+     <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                    sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+</script>
+</style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+       ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .gate-card{
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        }
+        
+        .gate-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .pulse-active {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+            @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+    </style>
+
+    </head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+        <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-waveform text-white text-lg"></i>
+                </div>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+                        EchoSummarizer
+                    </h1>
+                    <p class="text-xs text-indigo-400 font-medium">Speech-to-Action Workshop Playground</p>
+                </div>
+            <!-- Navigation Tabs -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80" id="navTabs">
+                <button onclick="switchTab('mod1')" id="tab-mod1" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-sm">
+                 <i class="fa-solid fa-microphone mr-1.5"></i>1. Speech ASR
+                </button>
+                    <button onclick="switchTab('mod2')" id="tab-mod2" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-diagram-next mr-1.5"></i>2. RNN Flow
+                </button>
+                    <button onclick="switchTab('mod3')" id="tab-mod3" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-microchip mr-1.5"></i>3. LSTM Cell
+                </button>
+                <button onclick="switchTab('mod4')" id="tab-mod4" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200">
+                <i class="fa-solid fa-flask mr-1.5"></i>4. Memory Lab
+                </button>
+                <button onclick="switchTab('mod5')" id="tab-mod5" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200">
+                    <i class="fa-solid fa-list-check mr-1.5"></i>5. Actions Extractor
+                </button>
+            </nav>
+
+                        <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                    Interactive AI
+                </span>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation bar -->
+        <div class="md:hidden flex overflow-x-auto px-4 py-2 space-x-2 border-t border-slate-800/80 bg-slate-950/90 text-xs">
+            <button onclick="switchTab('mod1')" class="mobile-tab px-3 py-1.5 rounded-md whitespace-nowrap bg-indigo-600 text-white">1. ASR Speech</button>
+            <button onclick="switchTab('mod2')" class="mobile-tab px-3 py-1.5 rounded-md whitespace-nowrap bg-slate-800 text-slate-300">2. RNN Flow</button>
+            <button onclick="switchTab('mod3')" class="mobile-tab px-3 py-1.5 rounded-md whitespace-nowrap bg-slate-800 text-slate-300">3. LSTM Gates</button>
+            <button onclick="switchTab('mod4')" class="mobile-tab px-3 py-1.5 rounded-md whitespace-nowrap bg-slate-800 text-slate-300">4. Memory Decay</button>
+            <button onclick="switchTab('mod5')" class="mobile-tab px-3 py-1.5 rounded-md whitespace-nowrap bg-slate-800 text-slate-300">5. Actions NLP</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col">
+
+                <!-- Notification Toast -->
+        <div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-800 border border-slate-700 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all">
+            <i id="toast-icon" class="fa-solid fa-circle-info text-indigo-400"></i>
+            <span id="toast-msg" class="text-sm font-medium">Message</span>
+        </div>
+
+    <!-- ========================================================================= -->
+        <!-- MODULE 1: Speech Recognition (Audio to Text) -->
+        <!-- ========================================================================= -->
+
+<section id="mod1-content" class="tab-content flex-1 flex flex-col space-y-6">
+<div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Module 01</span>
+                            <span>•</span>
+                            <span>Acoustic Acoustic Processing</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Speech Recognition (Audio-to-Text)</h2>
+                        <p class="text-sm text-slate-400 mt-1">Convert audio waveforms into sequential textual tokens using live microphone audio or pre-loaded transcript samples.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="recordBtn" onclick="toggleRecording()" class="flex items-center space-x-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-rose-600/20 active:scale-95">
+                            <i class="fa-solid fa-microphone text-sm" id="recordIcon"></i>
+                            <span id="recordBtnText" class="text-sm">Start Live Recording</span>
+                        </button>
+                    </div>
+                </div>
+<!-- Audio Visualizer Canvas -->
+<div class="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-6 relative overflow-hidden">
+<div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+     <span class="font-mono flex items-center gap-2"><i class="fa-solid fa-chart-simple text-indigo-400"></i> Live Audio Waveform Stream</span>
+     <span id="audioStatus" class="text-amber-400 font-mono">Microphone Offline</span>
+     </div>
+      <canvas id="waveformCanvas" class="w-full h-24 bg-slate-950/80 rounded-lg border border-slate-900"></canvas>
+    </div>
+
+                    <!-- Sample Audio Selectors -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Load Sample Meeting Audio Transcripts:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button onclick="loadSampleTranscript('techSync')" class="p-3 bg-slate-800/60 hover:bg-indigo-900/30 border border-slate-700/60 hover:border-indigo-500/50 rounded-xl text-left transition-all group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200 group-hover:text-indigo-300">Product Strategy Sync</span>
+                                <i class="fa-solid fa-play text-xs text-slate-500 group-hover:text-indigo-400"></i>
+                            </div>
+
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-1">Sarah & Alex discuss roadmap, Q3 features and deadlines.</p>
+                        </button>
+
+                                                <button onclick="loadSampleTranscript('engSprint')" class="p-3 bg-slate-800/60 hover:bg-indigo-900/30 border border-slate-700/60 hover:border-indigo-500/50 rounded-xl text-left transition-all group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200 group-hover:text-indigo-300">Engineering Standup</span>
+                                <i class="fa-solid fa-play text-xs text-slate-500 group-hover:text-indigo-400"></i>
+                            </div>
+
+                                <p class="text-xs text-slate-400 mt-1 line-clamp-1">API refactoring, database migration tasks & assignments.</p>
+                        </button>
+                        <button onclick="loadSampleTranscript('workshopPlan')" class="p-3 bg-slate-800/60 hover:bg-indigo-900/30 border border-slate-700/60 hover:border-indigo-500/50 rounded-xl text-left transition-all group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200 group-hover:text-indigo-300">Workshop Logistics</span>
+                                <i class="fa-solid fa-play text-xs text-slate-500 group-hover:text-indigo-400"></i>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-1">Setting up materials, hands-on labs, and slides.</p>
+                        </button>
+                    </div>
+                </div>
+
+                    <!-- Editable Transcribed Output -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Transcribed Audio Buffer (Editable Transcript):</label>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="clearTranscript()" class="text-xs text-slate-400 hover:text-rose-400 transition-colors">
+                                <i class="fa-solid fa-trash-can mr-1"></i>Clear
+                            </button>
+                            <button onclick="sendToModule5()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                                Send to Module 5 (Action Extractor) <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                        <textarea id="transcriptTextarea" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm font-sans text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all leading-relaxed" placeholder="Click 'Start Live Recording' to speak, or pick a sample audio transcript above..."></textarea>
+                </div>
+            </div>
+        </section>
+     <!-- ========================================================================= -->
+        <!-- MODULE 2: RNN Sequential Data Processing -->
+        <!-- ========================================================================= -->
+        <section id="mod2-content" class="tab-content hidden flex-1 flex flex-col space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                                                <div class="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Module 02</span>
+                            <span>•</span>
+                            <span>Recurrent Neural Network Logic</span>
+                        </div>
+                                            <h2 class="text-2xl font-bold text-white">RNN Sequential Processing Visualizer</h2>
+                        <p class="text-sm text-slate-400 mt-1">Watch how standard RNNs pass hidden state $h_t$ from token to token across sequential time steps.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="startRnnStepByStep()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all">
+                            <i class="fa-solid fa-step-forward mr-1"></i> Next Token
+                        </button>
+                        <button onclick="runFullRnnSimulation()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-indigo-600/20">
+                            <i class="fa-solid fa-play mr-1"></i> Play Sequence
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Phrase Selector -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-6">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Sequence Input Tokens ($x_t$):</label>
+                    <div class="flex gap-2">
+                        <input id="rnnInputTokens" type="text" value="Sarah will complete the database migration by Friday" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
+                        <button onclick="resetRnnSimulation()" class="bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-semibold">
+                            Reset State
+                        </button>
+                    </div>
+                </div>
+                <!-- Sequence Diagram Canvas/Grid -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 min-h-[220px] flex flex-col justify-between">
+                    <div class="text-xs text-slate-400 font-mono mb-4 flex justify-between items-center">
+                        <span>TIME-SERIES UNROLLED RNN NODES</span>
+                        <span id="rnnStepLabel" class="text-indigo-400 font-bold">Step 0 / 0</span>
+                    </div>
+
+                    <!-- Token Nodes Container -->
+                    <div id="rnnNodesContainer" class="flex items-center justify-start space-x-4 overflow-x-auto py-4">
+                        <!-- Populated by JS -->
+                    </div>
+        
+                    <!-- Formula Banner -->
+                    <div class="mt-6 p-4 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between text-xs font-mono text-slate-300">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-indigo-400 font-bold">Hidden State Equation:</span>
+                            <code>h_t = tanh( W_hh * h_{t-1} + W_xh * x_t + b )</code>
+                        </div>
+                        <div id="rnnCurrentHiddenVal" class="text-emerald-400 font-bold">
+                            h_t = [0.00]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    
+        <!-- ========================================================================= -->
+        <!-- MODULE 3: LSTM Memory Mechanism -->
+        <!-- ========================================================================= -->
+
+        <section id="mod3-content" class="tab-content hidden flex-1 flex flex-col space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Module 03</span>
+                            <span>•</span>
+                            <span>Gated Architecture</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">LSTM Cell Architecture Interactive Simulator</h2>
+                        <p class="text-sm text-slate-400 mt-1">Explore how Long Short-Term Memory gates regulate information flow using Cell State ($C_t$) and Hidden State ($h_t$).</p>
+                    </div>
+                </div>
+
+              <!-- Interactive Gate Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <!-- Forget Gate Card -->
+                    <div class="gate-card bg-slate-950 border border-amber-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Forget Gate ($f_t$)</span>
+                            <i class="fa-solid fa-filter-circle-xmark text-amber-400 text-sm"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">Decides what percentage of old memory $C_{t-1}$ to throw away.</p>
+                        <input id="forgetGateSlider" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full accent-amber-400" oninput="updateLstmCell()">
+                        <div class="flex justify-between text-xs font-mono mt-1">
+
+                            <span class="text-slate-500">Purge (0)</span>
+                            <span id="forgetGateVal" class="text-amber-400 font-bold">0.85</span>
+                            <span class="text-slate-500">Retain (1)</span>
+                        </div>
+                    </div>
+
+
+                   <!-- Input Gate Card -->
+                    <div class="gate-card bg-slate-950 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Input Gate ($i_t$)</span>
+                            <i class="fa-solid fa-file-circle-plus text-emerald-400 text-sm"></i>
+                        </div>
+
+                        <p class="text-xs text-slate-400 mb-3">Decides which new values to write into cell state $C_t$.</p>
+                        <input id="inputGateSlider" type="range" min="0" max="1" step="0.05" value="0.70" class="w-full accent-emerald-400" oninput="updateLstmCell()">
+                        <div class="flex justify-between text-xs font-mono mt-1">
+                            <span class="text-slate-500">Ignore (0)</span>
+                            <span id="inputGateVal" class="text-emerald-400 font-bold">0.70</span>
+                            <span class="text-slate-500">Write (1)</span>
+                        </div>
+                    </div>
+
+
+                    <!-- Candidate Cell Input Card -->
+                    <div class="gate-card bg-slate-950 border border-sky-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Candidate ($\tilde{C}_t$)</span>
+                            <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-sm"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">New candidate value vector created from current input $x_t$.</p>
+                        <input id="candidateSlider" type="range" min="-1" max="1" step="0.05" value="0.60" class="w-full accent-sky-400" oninput="updateLstmCell()">
+                        <div class="flex justify-between text-xs font-mono mt-1">
+                            <span class="text-slate-500">-1.0</span>
+                            <span id="candidateVal" class="text-sky-400 font-bold">+0.60</span>
+                            <span class="text-slate-500">+1.0</span>
+                        </div>
+                    </div>
+
+                    <!-- Output Gate Card -->
+                    <div class="gate-card bg-slate-950 border border-purple-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Output Gate ($o_t$)</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-purple-400 text-sm"></i>
+                        </div>
+
+                        <p class="text-xs text-slate-400 mb-3">Filters cell state $C_t$ to create output hidden state $h_t$.</p>
+                        <input id="outputGateSlider" type="range" min="0" max="1" step="0.05" value="0.90" class="w-full accent-purple-400" oninput="updateLstmCell()">
+                        <div class="flex justify-between text-xs font-mono mt-1">
+                            <span class="text-slate-500">Block (0)</span>
+                            <span id="outputGateVal" class="text-purple-400 font-bold">0.90</span>
+                            <span class="text-slate-500">Emit (1)</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- State Visualizer Box -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cell State Calculation Pipeline</h4>
+                        
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Previous Cell Memory ($C_{t-1}$):</span>
+                                <input id="prevCellInput" type="number" step="0.1" value="1.0" class="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-amber-300" oninput="updateLstmCell()">
+                            </div>
+
+                            <div class="flex justify-between items-center text-slate-400">
+                                <span>1. Retained Memory ($f_t \times C_{t-1}$):</span>
+                                <span id="retainedMemVal" class="text-amber-400 font-bold">0.85</span>
+                            </div>
+
+                            <div class="flex justify-between items-center text-slate-400">
+                                <span>2. Added Memory ($i_t \times \tilde{C}_t$):</span>
+                                <span id="addedMemVal" class="text-emerald-400 font-bold">+0.42</span>
+                            </div>
+
+                            <div class="border-t border-slate-800 pt-2 flex justify-between items-center text-slate-200">
+                                <span class="font-bold">New Cell State ($C_t$):</span>
+                                <span id="newCellStateVal" class="text-indigo-400 font-bold text-sm">1.27</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hidden State Emission Output</h4>
+                                                
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
+                            <div class="flex justify-between items-center text-slate-400">
+                                <span>Cell Non-linearity $\tanh(C_t)$:</span>
+                                <span id="tanhCellVal" class="text-sky-400 font-bold">0.85</span>
+                            </div>
+
+                                                       <div class="flex justify-between items-center text-slate-400">
+                                <span>Output Gate Weight ($o_t$):</span>
+                                <span id="outGateValDisplay" class="text-purple-400 font-bold">0.90</span>
+                            </div>
+                            <div class="border-t border-slate-800 pt-2 flex justify-between items-center text-slate-200">
+                                <span class="font-bold">New Hidden State ($h_t$):</span>
+                                <span id="newHiddenStateVal" class="text-emerald-400 font-bold text-sm">0.77</span>
+                            </div>
+
+                                <p class="text-[11px] text-slate-500 font-sans mt-2">The Cell State ($C_t$) acts as a constant gradient highway, enabling information to persist across hundreds of conversation tokens without vanishing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 4: Model Memory Experiment Simulator -->
+        <!-- ========================================================================= -->
+
+        <section id="mod4-content" class="tab-content hidden flex-1 flex flex-col space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Module 04</span>
+                            <span>•</span>
+                            <span>Memory Retention Benchmarking</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">RNN vs LSTM Memory Decay Simulator</h2>
+                        <p class="text-sm text-slate-400 mt-1">Test how information retention holds up over long multi-turn meeting transcripts between standard RNNs and LSTMs.</p>
+                    </div>
+
+                    <button onclick="runMemoryExperiment()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20">
+                        <i class="fa-solid fa-play mr-1.5"></i> Run Decay Simulation
+                    </button>
+                </div>
+
+                <!-- Controls & Parameters -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sequence Length ($T$ Tokens):</label>
+                        <input id="seqLengthSlider" type="range" min="10" max="100" step="5" value="50" class="w-full accent-indigo-500" oninput="updateMemoryLabels()">
+                        <div class="flex justify-between text-xs font-mono mt-1 text-slate-400">
+                            <span>10 Tokens</span>
+                            <span id="seqLengthVal" class="text-indigo-400 font-bold">50 Tokens</span>
+                            <span>100 Tokens</span>
+                        </div>
+                    </div>
+
+
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">RNN Gradient Decay Factor ($\gamma$):</label>
+                        <input id="rnnDecaySlider" type="range" min="0.75" max="0.98" step="0.01" value="0.88" class="w-full accent-rose-500" oninput="updateMemoryLabels()">
+                        <div class="flex justify-between text-xs font-mono mt-1 text-slate-400">
+                            <span>0.75 (Fast Decay)</span>
+                            <span id="rnnDecayVal" class="text-rose-400 font-bold">0.88</span>
+                            <span>0.98</span>
+                        </div>
+                    </div>
+
+                                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">LSTM Forget Gate Bias ($b_f$):</label>
+                        <input id="lstmBiasSlider" type="range" min="0.8" max="1.0" step="0.01" value="0.97" class="w-full accent-emerald-500" oninput="updateMemoryLabels()">
+                        <div class="flex justify-between text-xs font-mono mt-1 text-slate-400">
+                            <span>0.80</span>
+                            <span id="lstmBiasVal" class="text-emerald-400 font-bold">0.97 (High Persistence)</span>
+                            <span>1.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- Memory Retention Graph Canvas -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4 text-xs font-mono">
+                        <span class="text-slate-300 font-bold">Signal Persistence Curve over Time ($t$)</span>
+                        <div class="flex items-center space-x-4">
+                            <span class="flex items-center text-rose-400"><span class="w-3 h-0.5 bg-rose-500 mr-1.5"></span> Standard RNN</span>
+                            <span class="flex items-center text-emerald-400"><span class="w-3 h-0.5 bg-emerald-500 mr-1.5"></span> LSTM Network</span>
+                        </div>
+                    </div>
+                    <canvas id="memoryChartCanvas" class="w-full h-64 bg-slate-950 rounded-lg"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 5: Action Item & Decision Extraction -->
+        <!-- ========================================================================= -->
+
+            <section id="mod5-content" class="tab-content hidden flex-1 flex flex-col space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span>Module 05</span>
+                            <span>•</span>
+                            <span>Natural Language Understanding</span>
+                        </div>
+                       <h2 class="text-2xl font-bold text-white">Action Item & Decision Intelligence Extractor</h2>
+                        <p class="text-sm text-slate-400 mt-1">Extract key decisions, assigned tasks, owners, and deadlines from meeting transcripts using heuristic NLP patterns.</p>
+                    </div>
+
+                        <button onclick="extractActionsAndDecisions()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Run Extraction Pipeline
+                    </button>
+                </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Input Transcript -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Input Conversation Transcript:</label>
+                            <div class="flex space-x-2">
+                                <button onclick="loadSampleToMod5('techSync')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded">Sample 1</button>
+                                <button onclick="loadSampleToMod5('engSprint')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded">Sample 2</button>
+                            </div>
+                        </div>
+
+                        <textarea id="mod5TranscriptInput" rows="14" class="flex-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-sans text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 leading-relaxed" placeholder="Paste or type meeting audio transcript here..."></textarea>
+                    </div>
+
+                                        <!-- Extracted Structured Outputs -->
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Extracted Meeting Intelligence:</label>
+                            <button onclick="copyExtractedJson()" class="text-xs text-indigo-400 hover:text-indigo-300">
+                                <i class="fa-solid fa-copy mr-1"></i>Copy JSON
+                            </button>
+                        </div>
+
+                                                <!-- Decisions Container -->
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                            <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+                                <i class="fa-solid fa-gavel text-amber-400 text-sm"></i>
+                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Key Decisions Agreed Upon</span>
+                                <span id="decisionsCountBadge" class="ml-auto text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-mono">0 Found</span>
+                            </div>
+
+                                                        <div id="decisionsList" class="space-y-2 max-h-36 overflow-y-auto text-xs text-slate-300">
+                                <p class="text-slate-500 italic">No extraction run yet. Click 'Run Extraction Pipeline' above.</p>
+                            </div>
+                        </div>
+
+                                                <!-- Action Items Container -->
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                            <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+                                <i class="fa-solid fa-list-check text-emerald-400 text-sm"></i>
+                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Assigned Action Items & Tasks</span>
+                                <span id="actionsCountBadge" class="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-mono">0 Found</span>
+                            </div>  
+                            
+                                                        <div id="actionsList" class="space-y-2 max-h-48 overflow-y-auto text-xs text-slate-300">
+                                <p class="text-slate-500 italic">No extraction run yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>EchoSummarizer: Speech-to-Action Workshop Playground</span>
+            <span class="font-mono">PyTorch • torchaudio • Web Speech API • RNN / Bi-LSTM</span>
+        </div>
+    </footer>
+    
+        <!-- JavaScript Application Logic -->
+    <script>
+        // Sample Audio Transcripts Library
+        const SAMPLE_TRANSCRIPTS = {
+            techSync: `Sarah: Hi team, let's align on the Q3 product roadmap.
+Alex: I suggest we prioritize the search performance optimization first.
+Sarah: Agreed. We decided to launch the search refactor in sprint 1.
+Alex: Great. I will optimize the PostgreSQL database indexes by next Wednesday.
+Sarah: Perfect. Alex will also handle writing the API documentation by Friday.
+Jordan: What about the mobile UI revamp?
+Sarah: We decided to postpone the mobile UI redesign until Q4.`,
+
+            engSprint: `David: Welcome to the sprint planning session.
+Elena: We decided to migrate all microservices to Docker containers this sprint.
+David: Excellent. Elena will configure the Kubernetes deployment manifests by Thursday.
+Marcus: I will take responsibility for implementing the JWT authentication middleware by tomorrow.
+Elena: Remember, we agreed to enforce 85% unit test coverage for all pull requests.
+David: Marcus will update the CI/CD pipeline script by Friday afternoon.`,
+
+            workshopPlan: `Rachel: Let's organize the deep learning audio workshop.
+Liam: We decided to focus the curriculum on RNNs, LSTMs, and Speech Recognition.
+Rachel: Sounds great. I will draft the interactive Jupyter notebook exercises by Monday.
+Liam: I will prepare the presentation slides and Mel-spectrogram diagrams by Sunday.
+Rachel: We also decided to limit each hands-on lab section to 45 minutes.`
+        };
+
+        // State Management
+        let recognition = null;
+        let isRecording = false;
+        let audioCtx = null;
+        let analyser = null;
+        let animFrameId = null;
+        let rnnStepIndex = 0;
+        let rnnTokens = [];
+        let rnnTimer = null;
+
+
+                // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            initWebSpeech();
+            initWaveformCanvas();
+            initRnnVisualizer();
+            updateLstmCell();
+            updateMemoryLabels();
+            runMemoryExperiment();
+            loadSampleToMod5('techSync');
+        });
+
+                // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabId}-content`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-400');
+            });
+
+                        const activeNav = document.getElementById(`tab-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                activeNav.classList.remove('text-slate-400');
+            }
+
+            if (tabId === 'mod4') {
+                setTimeout(runMemoryExperiment, 100);
+            }
+        }
+
+                // Notification Toast Helper
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-msg');
+            msg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+        
+                // =========================================================================
+        // MODULE 1: Web Speech & Audio Waveform Visualizer
+        // =========================================================================
+
+                function initWebSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    const textarea = document.getElementById('transcriptTextarea');
+                    textarea.value = transcript;
+                };
+
+                                recognition.onerror = (e) => {
+                    console.warn('Speech Rec Error:', e.error);
+                    document.getElementById('audioStatus').textContent = 'Speech Recognition Error';
+                };
+
+                recognition.onend = () => {
+                    if (isRecording) recognition.start();
+                };
+            }
+        }
+
+                function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+                function startRecording() {
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch(e){}
+            }
+
+                        isRecording = true;
+            document.getElementById('recordBtnText').textContent = 'Stop Recording';
+            document.getElementById('recordBtn').classList.remove('bg-rose-600');
+            document.getElementById('recordBtn').classList.add('bg-amber-600', 'pulse-active');
+            document.getElementById('audioStatus').textContent = 'Listening Live...';
+            document.getElementById('audioStatus').classList.remove('text-amber-400');
+            document.getElementById('audioStatus').classList.add('text-emerald-400');
+            
+                        startAudioWaveform();
+            showToast('Microphone active. Speak now to transcribe live audio.');
+        }
+
+        
+        function stopRecording() {
+            if (recognition) {
+                try { recognition.stop(); } catch(e){}
+            }
+            isRecording = false;
+            document.getElementById('recordBtnText').textContent = 'Start Live Recording';
+            document.getElementById('recordBtn').classList.remove('bg-amber-600', 'pulse-active');
+            document.getElementById('recordBtn').classList.add('bg-rose-600');
+            document.getElementById('audioStatus').textContent = 'Microphone Offline';
+            document.getElementById('audioStatus').classList.remove('text-emerald-400');
+            document.getElementById('audioStatus').classList.add('text-amber-400');
+
+                        
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            showToast('Recording stopped.');
+        }
+
+        function startAudioWaveform() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                const source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 256;
+                drawWaveform();
+            }).catch(() => {
+                drawSimulatedWaveform();
+            });
+        }
+
+               function drawWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function render() {
+                animFrameId = requestAnimationFrame(render);
+                analyser.getByteTimeDomainData(dataArray);
+
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#6366f1';
+                ctx.beginPath();
+
+                const sliceWidth = canvas.width * 1.0 / bufferLength;
+                let x = 0;
+
+                                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = v * canvas.height / 2;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+
+                    x += sliceWidth;
+                }
+
+                                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            }
+            render();
+        }
+
+                function drawSimulatedWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            let phase = 0;
+
+            function render() {
+                if (!isRecording) return;
+                animFrameId = requestAnimationFrame(render);
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#6366f1';
+                ctx.beginPath();
+
+                               for (let x = 0; x < canvas.width; x++) {
+                    const y = canvas.height / 2 + Math.sin(x * 0.05 + phase) * 20 * Math.sin(x * 0.01);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                phase += 0.1;
+            }
+            render();
+        }
+
+
+                function initWaveformCanvas() {
+            const canvas = document.getElementById('waveformCanvas');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 96;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function loadSampleTranscript(key) {
+            if (SAMPLE_TRANSCRIPTS[key]) {
+                document.getElementById('transcriptTextarea').value = SAMPLE_TRANSCRIPTS[key];
+                showToast(`Loaded sample transcript (${key})`);
+            }
+        }
+
+                function clearTranscript() {
+            document.getElementById('transcriptTextarea').value = '';
+        }
+
+        function sendToModule5() {
+            const text = document.getElementById('transcriptTextarea').value;
+            if (!text.trim()) {
+                showToast('Transcript is empty! Speak or select a sample first.');
+                return;
+            }
+            document.getElementById('mod5TranscriptInput').value = text;
+            switchTab('mod5');
+            extractActionsAndDecisions();
+            showToast('Transcript transferred to Action Item Extractor.');
+        }
+
+               // =========================================================================
+        // MODULE 2: RNN Visualizer
+        // =========================================================================
+        function initRnnVisualizer() {
+            resetRnnSimulation();
+        }
+
+        function resetRnnSimulation() {
+            if (rnnTimer) clearInterval(rnnTimer);
+            const inputVal = document.getElementById('rnnInputTokens').value.trim();
+            rnnTokens = inputVal ? inputVal.split(' ') : ['Speech', 'audio', 'tokens'];
+            rnnStepIndex = 0;
+
+            const container = document.getElementById('rnnNodesContainer');
+            container.innerHTML = '';
+            rnnTokens.forEach((tok, idx) => {
+                const node = document.createElement('div');
+                node.id = `rnn-node-${idx}`;
+                node.className = 'flex flex-col items-center min-w-[100px] p-3 rounded-xl bg-slate-900 border border-slate-800 transition-all duration-300';
+                node.innerHTML = `
+                    <span class="text-[10px] font-mono text-slate-500 mb-1">t=${idx+1}</span>
+                    <span class="text-xs font-bold text-slate-300 mb-2">${tok}</span>
+                    <div class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-mono text-indigo-400 font-bold node-h">
+                        h_${idx+1}
+                    </div>
+                `;
+                container.appendChild(node);
+            });
+
+            document.getElementById('rnnStepLabel').textContent = `Step 0 / ${rnnTokens.length}`;
+            document.getElementById('rnnCurrentHiddenVal').textContent = `h_0 = [0.00]`;
+        }
+
+                function startRnnStepByStep() {
+            if (rnnStepIndex >= rnnTokens.length) {
+                rnnStepIndex = 0;
+            }
+            highlightRnnStep(rnnStepIndex);
+            rnnStepIndex++;
+        }
+
+        function highlightRnnStep(idx) {
+            rnnTokens.forEach((_, i) => {
+                const node = document.getElementById(`rnn-node-${i}`);
+                if (node) {
+                    node.classList.remove('border-indigo-500', 'bg-indigo-950/40', 'scale-105');
+                    node.classList.add('border-slate-800', 'bg-slate-900');
+                }
+            });
+
+                        const activeNode = document.getElementById(`rnn-node-${idx}`);
+            if (activeNode) {
+                activeNode.classList.remove('border-slate-800', 'bg-slate-900');
+                activeNode.classList.add('border-indigo-500', 'bg-indigo-950/40', 'scale-105');
+            }
+
+            const simulatedVal = (Math.sin(idx + 1) * 0.85).toFixed(2);
+            document.getElementById('rnnStepLabel').textContent = `Step ${idx + 1} / ${rnnTokens.length}`;
+            document.getElementById('rnnCurrentHiddenVal').textContent = `h_${idx+1} = [${simulatedVal}]`;
+        }
+
+                function runFullRnnSimulation() {
+            resetRnnSimulation();
+            let step = 0;
+            rnnTimer = setInterval(() => {
+                if (step < rnnTokens.length) {
+                    highlightRnnStep(step);
+                    step++;
+                } else {
+                    clearInterval(rnnTimer);
+                }
+            }, 600);
+        }
+
+                // =========================================================================
+        // MODULE 3: LSTM Cell Simulator
+        // =========================================================================
+
+                function updateLstmCell() {
+            const f_t = parseFloat(document.getElementById('forgetGateSlider').value);
+            const i_t = parseFloat(document.getElementById('inputGateSlider').value);
+            const c_tilde = parseFloat(document.getElementById('candidateSlider').value);
+            const o_t = parseFloat(document.getElementById('outputGateSlider').value);
+            const c_prev = parseFloat(document.getElementById('prevCellInput').value) || 0;
+
+            document.getElementById('forgetGateVal').textContent = f_t.toFixed(2);
+            document.getElementById('inputGateVal').textContent = i_t.toFixed(2);
+            document.getElementById('candidateVal').textContent = (c_tilde >= 0 ? '+' : '') + c_tilde.toFixed(2);
+            document.getElementById('outputGateVal').textContent = o_t.toFixed(2);
+
+                        // Calculations
+            const retained = f_t * c_prev;
+            const added = i_t * c_tilde;
+            const c_t = retained + added;
+            const tanh_ct = Math.tanh(c_t);
+            const h_t = o_t * tanh_ct;
+
+            document.getElementById('retainedMemVal').textContent = retained.toFixed(2);
+            document.getElementById('addedMemVal').textContent = (added >= 0 ? '+' : '') + added.toFixed(2);
+            document.getElementById('newCellStateVal').textContent = c_t.toFixed(2);
+            document.getElementById('tanhCellVal').textContent = tanh_ct.toFixed(2);
+            document.getElementById('outGateValDisplay').textContent = o_t.toFixed(2);
+            document.getElementById('newHiddenStateVal').textContent = h_t.toFixed(2);
+        }
+
+                // =========================================================================
+        // MODULE 4: Memory Experiment Simulator
+        // ====
+
+                function updateMemoryLabels() {
+            const seqLen = document.getElementById('seqLengthSlider').value;
+            const rnnDecay = document.getElementById('rnnDecaySlider').value;
+            const lstmBias = document.getElementById('lstmBiasSlider').value;
+
+            document.getElementById('seqLengthVal').textContent = `${seqLen} Tokens`;
+            document.getElementById('rnnDecayVal').textContent = rnnDecay;
+            document.getElementById('lstmBiasVal').textContent = `${lstmBias}`;
+
+            runMemoryExperiment();
+        }
+
+          function runMemoryExperiment() {
+            const canvas = document.getElementById('memoryChartCanvas');
+            if (!canvas) return;
+            canvas.width = canvas.parentElement.clientWidth - 48;
+            canvas.height = 240;
+            const ctx = canvas.getContext('2d');
+
+            const seqLen = parseInt(document.getElementById('seqLengthSlider').value);
+            const rnnDecay = parseFloat(document.getElementById('rnnDecaySlider').value);
+            const lstmBias = parseFloat(document.getElementById('lstmBiasSlider').value);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        // Draw Grid
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let y = 0; y <= canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+                        // Generate Memory Signal Curves
+            const rnnPoints = [];
+            const lstmPoints = [];
+
+            let rnnSignal = 1.0;
+            let lstmSignal = 1.0;
+
+            for (let t = 0; t < seqLen; t++) {
+                rnnPoints.push(rnnSignal);
+                lstmPoints.push(lstmSignal);
+
+                rnnSignal *= rnnDecay;
+                lstmSignal *= (lstmBias + (Math.random() * 0.02 - 0.01));
+                if (lstmSignal > 1.0) lstmSignal = 1.0;
+            }
+
+            // Plot Function
+            function drawCurve(points, color) {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+
+                points.forEach((val, t) => {
+                    const x = (t / (seqLen - 1)) * (canvas.width - 20) + 10;
+                    const y = canvas.height - (val * (canvas.height - 40) + 20);
+
+                    if (t === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            }
+
+            
+            drawCurve(rnnPoints, '#f43f5e');  // RNN (Red)
+            drawCurve(lstmPoints, '#10b981'); // LSTM (Green)
+        }
+
+                // =========================================================================
+        // MODULE 5: Action & Decision Intelligence Extractor
+        // =========================================================================
+
+
+           function loadSampleToMod5(key) {
+            if (SAMPLE_TRANSCRIPTS[key]) {
+                document.getElementById('mod5TranscriptInput').value = SAMPLE_TRANSCRIPTS[key];
+                extractActionsAndDecisions();
+            }
+        }
+
+        function extractActionsAndDecisions() {
+            const text = document.getElementById('mod5TranscriptInput').value;
+            if (!text.trim()) {
+                showToast('Transcript is empty.');
+                return;
+            }
+
+            const lines = text.split('\n');
+            const decisions = [];
+            const actions = [];
+
+                       const decisionKeywords = ['decided', 'agreed', 'consensus', 'conclusion', 'plan is to'];
+            const actionKeywords = ['will', 'going to', 'tasked with', 'assigned', 'responsible for', 'take care of'];
+            const timeKeywords = ['by monday', 'by friday', 'by next week', 'tomorrow', 'sprint 1', 'by wednesday', 'by sunday'];
+
+            lines.forEach(line => {
+                const lower = line.toLowerCase();
+
+                // Detect Decisions
+                if (decisionKeywords.some(kw => lower.includes(kw))) {
+                    decisions.push(line.trim());
+                }
+
+                                // Detect Action Items
+                if (actionKeywords.some(kw => lower.includes(kw))) {
+                    let assignee = 'Unassigned';
+                    let deadline = 'No explicit deadline';
+
+                    // Extracted Speaker / Owner
+                    const speakerMatch = line.match(/^([A-Za-z]+):/);
+                    if (speakerMatch) {
+                        assignee = speakerMatch[1];
+                    }
+
+                    // Extract Deadline
+                    timeKeywords.forEach(tk => {
+                        if (lower.includes(tk)) {
+                            deadline = tk;
+                        }
+                    });
+
+                                        actions.push({
+                        raw: line.trim(),
+                        assignee: assignee,
+                        deadline: deadline
+                    });
+                }
+            });
+
+                        // Render Extracted Decisions
+            const decisionsContainer = document.getElementById('decisionsList');
+            document.getElementById('decisionsCountBadge').textContent = `${decisions.length} Found`;
+            
+            if (decisions.length === 0) {
+                decisionsContainer.innerHTML = `<p class="text-slate-500 italic">No clear key decisions identified in text.</p>`;
+            } else {
+                decisionsContainer.innerHTML = decisions.map(d => `
+                    <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-start space-x-2">
+                        <i class="fa-solid fa-check text-amber-400 text-xs mt-0.5"></i>
+                        <span class="text-slate-200">${d}</span>
+                    </div>
+                `).join('');
+            }
+
+              // Render Extracted Action Items
+            const actionsContainer = document.getElementById('actionsList');
+            document.getElementById('actionsCountBadge').textContent = `${actions.length} Found`;
+
+            if (actions.length === 0) {
+                actionsContainer.innerHTML = `<p class="text-slate-500 italic">No explicit action items detected.</p>`;
+            } else {
+                actionsContainer.innerHTML = actions.map(a => `
+                    <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span class="font-bold text-indigo-400"><i class="fa-solid fa-user text-xs mr-1"></i>Owner: ${a.assignee}</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono"><i class="fa-regular fa-clock mr-1"></i>${a.deadline}</span>
+                        </div>
+                        <p class="text-slate-300 text-xs">${a.raw}</p>
+                    </div>
+                `).join('');
+            }
+
+            showToast(`Extraction complete: ${decisions.length} Decisions, ${actions.length} Action Items found.`);
+        }
+
+        function copyExtractedJson() {
+            const decisionsText = Array.from(document.querySelectorAll('#decisionsList div span')).map(e => e.textContent);
+            const jsonOutput = JSON.stringify({ decisions: decisionsText }, null, 2);
+
+            const tempInput = document.createElement("textarea");
+            tempInput.value = jsonOutput;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            showToast('Extracted JSON copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
